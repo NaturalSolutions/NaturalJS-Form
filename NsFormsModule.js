@@ -4,7 +4,7 @@
   'backbone',
   'marionette',
   'backboneforms',
-  'text!Modules/Templates/NsFormsModule.html'
+  'text!./Templates/NsFormsModule.html'
 ], function ($, _, Backbone, Marionette, BackboneForm, TplForm) {
     return Marionette.ItemView.extend({
         BBForm: null,
