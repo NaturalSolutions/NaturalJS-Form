@@ -21,9 +21,6 @@
         },
         redirectAfterPost: "",
 
-
-
-
         initialize: function (options) {
             this.modelurl = options.modelurl;
             this.name = options.name;
