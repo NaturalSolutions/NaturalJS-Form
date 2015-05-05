@@ -4,9 +4,9 @@
   'backbone',
   'marionette',
   'backbone-forms',
-  'requirejs-text!./Templates/NsFormsModule.html'
-], function ($, _, Backbone, Marionette, BackboneForm, tpl) {
-    return Marionette.ItemView.extend({
+  'requirejs-text!./Templates/NsFormsModule.html', 
+], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
+    return Backbone.View.extend({
         BBForm: null,
         modelurl: null,
         Name: null,
@@ -99,7 +99,7 @@
                         ctx.model.fieldsets = resp.fieldsets;
                     }
                     // give the url to model to manage save
-                    ctx.model.url = this.modelurl;
+                    ctx.model.urlRoot = this.modelurl;
                     ctx.BBForm = new BackboneForm({ model: ctx.model, data: ctx.model.data, fieldsets: ctx.model.fieldsets, schema: ctx.model.schema });
                     ctx.showForm();
                 },
@@ -128,11 +128,13 @@
             var ctx = this;
             this.buttonRegion.forEach(function (entry) {
                 if (ctx.displayMode == 'edit') {
+                    $('#' + entry).find('.NsFormModuleCancel' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleSave' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleClear' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
                 }
                 else {
+                    $('#' + entry).find('.NsFormModuleCancel' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleSave' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleClear' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleEdit' + ctx.name).attr('style', 'display:');
@@ -154,6 +156,7 @@
             }
 
             var ctx = this;
+            var _this = this;
             this.onSavingModel();
             if (this.model.id == 0) {
                 // New Record
@@ -162,6 +165,7 @@
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
                         ctx.id = ctx.model.id;
+                        _this.savingSuccess(response);
                         if (ctx.redirectAfterPost != "") {
                             // If redirect after creation
                             var TargetUrl = ctx.redirectAfterPost.replace('@id', ctx.id);
@@ -183,6 +187,9 @@
                             ctx.showForm();
                             ctx.displaybuttons();
                         }
+                    },
+                    error: function(response){
+                        _this.savingError(response);
                     }
                 });
             }
@@ -190,11 +197,16 @@
                 // UAfter update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
+                        _this.savingSuccess(response);
+
                         ctx.displayMode = 'display';
                         // reaload updated record from AJAX Call
                         ctx.initModel();
                         ctx.showForm();
                         ctx.displaybuttons();
+                    },
+                    error: function(response){
+                        _this.savingError(response);
                     }
                 });
             }
@@ -215,6 +227,12 @@
         },
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
+        },
+        savingSuccess: function (response) {
+            
+        },
+        savingError: function (response) {
+
         },
         afterSavingModel: function () {
             // To be extended called after model.save()
