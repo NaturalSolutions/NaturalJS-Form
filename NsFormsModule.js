@@ -99,7 +99,7 @@
                         ctx.model.fieldsets = resp.fieldsets;
                     }
                     // give the url to model to manage save
-                    ctx.model.url = this.modelurl;
+                    ctx.model.urlRoot = this.modelurl;
                     ctx.BBForm = new BackboneForm({ model: ctx.model, data: ctx.model.data, fieldsets: ctx.model.fieldsets, schema: ctx.model.schema });
                     ctx.showForm();
                 },
@@ -128,11 +128,13 @@
             var ctx = this;
             this.buttonRegion.forEach(function (entry) {
                 if (ctx.displayMode == 'edit') {
+                    $('#' + entry).find('.NsFormModuleCancel' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleSave' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleClear' + ctx.name).attr('style', 'display:');
                     $('#' + entry).find('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
                 }
                 else {
+                    $('#' + entry).find('.NsFormModuleCancel' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleSave' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleClear' + ctx.name).attr('style', 'display:none');
                     $('#' + entry).find('.NsFormModuleEdit' + ctx.name).attr('style', 'display:');
@@ -144,6 +146,7 @@
             $('.NsFormModuleSave' + ctx.name).click($.proxy(ctx.butClickSave, ctx));
             $('.NsFormModuleEdit' + ctx.name).click($.proxy(ctx.butClickEdit, ctx));
             $('.NsFormModuleClear' + ctx.name).click($.proxy(ctx.butClickClear, ctx));
+            $('.NsFormModuleCancel' + ctx.name).click($.proxy(ctx.butClickCancel, ctx));
         },
         butClickSave: function (e) {           
             this.BBForm.commit();
@@ -203,6 +206,12 @@
         butClickEdit: function (e) {
             e.preventDefault();
             this.displayMode = 'edit';
+            this.initModel();
+            this.displaybuttons();
+        },
+        butClickCancel: function (e) {
+            e.preventDefault();
+            this.displayMode = 'display';
             this.initModel();
             this.displaybuttons();
         },
