@@ -146,6 +146,7 @@
             $('.NsFormModuleSave' + ctx.name).click($.proxy(ctx.butClickSave, ctx));
             $('.NsFormModuleEdit' + ctx.name).click($.proxy(ctx.butClickEdit, ctx));
             $('.NsFormModuleClear' + ctx.name).click($.proxy(ctx.butClickClear, ctx));
+            $('.NsFormModuleCancel' + ctx.name).click($.proxy(ctx.butClickCancel, ctx));
         },
         butClickSave: function (e) {           
             this.BBForm.commit();
@@ -215,6 +216,12 @@
         butClickEdit: function (e) {
             e.preventDefault();
             this.displayMode = 'edit';
+            this.initModel();
+            this.displaybuttons();
+        },
+        butClickCancel: function (e) {
+            e.preventDefault();
+            this.displayMode = 'display';
             this.initModel();
             this.displaybuttons();
         },
