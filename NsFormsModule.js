@@ -4,9 +4,9 @@
   'backbone',
   'marionette',
   'backbone-forms',
-  'requirejs-text!./Templates/NsFormsModule.html'
-], function ($, _, Backbone, Marionette, BackboneForm, tpl) {
-    return Marionette.ItemView.extend({
+  'requirejs-text!./Templates/NsFormsModule.html', 
+], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
+    return Backbone.View.extend({
         BBForm: null,
         modelurl: null,
         Name: null,
@@ -157,6 +157,7 @@
             }
 
             var ctx = this;
+            var _this = this;
             this.onSavingModel();
             if (this.model.id == 0) {
                 // New Record
@@ -165,6 +166,7 @@
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
                         ctx.id = ctx.model.id;
+                        _this.savingSuccess(response);
                         if (ctx.redirectAfterPost != "") {
                             // If redirect after creation
                             var TargetUrl = ctx.redirectAfterPost.replace('@id', ctx.id);
@@ -186,6 +188,9 @@
                             ctx.showForm();
                             ctx.displaybuttons();
                         }
+                    },
+                    error: function(response){
+                        _this.savingError(response);
                     }
                 });
             }
@@ -193,11 +198,16 @@
                 // UAfter update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
+                        _this.savingSuccess(response);
+
                         ctx.displayMode = 'display';
                         // reaload updated record from AJAX Call
                         ctx.initModel();
                         ctx.showForm();
                         ctx.displaybuttons();
+                    },
+                    error: function(response){
+                        _this.savingError(response);
                     }
                 });
             }
@@ -224,6 +234,12 @@
         },
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
+        },
+        savingSuccess: function (response) {
+            
+        },
+        savingError: function (response) {
+
         },
         afterSavingModel: function () {
             // To be extended called after model.save()
