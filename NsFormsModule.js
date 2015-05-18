@@ -3,7 +3,7 @@
   'underscore',
   'backbone',
   'marionette',
-  'backbone-forms',
+  'backbone_forms',
   'requirejs-text!./Templates/NsFormsModule.html', 
 ], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
     return Backbone.View.extend({
