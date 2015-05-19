@@ -4,7 +4,7 @@
   'backbone',
   'marionette',
   'backbone_forms',
-  'requirejs-text!./Templates/NsFormsModule.html', 
+  'requirejs-text!./Templates/NsFormsModule.html',
 ], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
     return Backbone.View.extend({
         BBForm: null,
@@ -15,6 +15,7 @@
         buttonRegion: null,
         formRegion: null,
         id: null,
+        reloadAfterSave: true,
         template: tpl,
         regions: {
             nsFormButtonRegion: '#NsFormButton'
@@ -26,6 +27,7 @@
             this.name = options.name;
             this.buttonRegion = options.buttonRegion;
             this.formRegion = options.formRegion;
+            if (options.reloadAfterSave != null) { this.reloadAfterSave = options.reloadAfterSave };
             // The template need formname as vrairable, to make it work if several NSForms in the same page
             // With adding formname, there will be no name conflit on Button class
             var variables = { formname: this.name };
@@ -118,9 +120,9 @@
             this.buttonRegion.forEach(function (entry) {
                 $('#' + entry).html(ctx.template);
             });
-            
 
-            
+
+
             this.displaybuttons();
         },
 
@@ -136,7 +138,7 @@
                 $('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
                 console.log($('#' + this.formRegion));
                 $('#' + this.formRegion).find('input:enabled:first').focus()
-                
+
             }
             else {
                 $('.NsFormModuleCancel' + ctx.name).attr('style', 'display:none');
@@ -186,14 +188,12 @@
                         }
                         else {
                             // If no redirect after creation
-                            ctx.displayMode = 'display';
-                            // reaload created record from AJAX Call
-                            ctx.initModel();
-                            ctx.showForm();
-                            ctx.displaybuttons();
+                            if (ctx.reloadAfterSave) {
+                                ctx.reloadAfterSave();
+                            }
                         }
                     },
-                    error: function(response){
+                    error: function (response) {
                         _this.savingError(response);
                     }
 
@@ -207,13 +207,11 @@
                         console.log(model);
                         console.log(response);
                         ctx.saveSuccess(model, response);
-                        ctx.displayMode = 'display';
-                        // reaload updated record from AJAX Call
-                        ctx.initModel();
-                        ctx.showForm();
-                        ctx.displaybuttons();
+                        if (ctx.reloadAfterSave) {
+                            ctx.reloadingAfterSave();
+                        }
                     },
-                    error: function(response){
+                    error: function (response) {
                         _this.savingError(response);
                     }
                 });
@@ -226,7 +224,7 @@
             this.initModel();
             this.displaybuttons();
 
-            
+
 
         },
         butClickCancel: function (e) {
@@ -242,11 +240,18 @@
             $(formContent).find('textarea').val('');
             $(formContent).find('input[type="checkbox"]').attr('checked', false);
         },
+        reloadingAfterSave: function () {
+            this.displayMode = 'display';
+            // reaload created record from AJAX Call
+            this.initModel();
+            this.showForm();
+            this.displaybuttons();
+        },
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
         },
         savingSuccess: function (response) {
-            
+
         },
         savingError: function (response) {
 
