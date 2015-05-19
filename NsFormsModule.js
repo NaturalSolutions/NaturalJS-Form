@@ -170,9 +170,9 @@
 
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
-                        ctx.saveSuccess(model, response);
+                        ctx.savingSuccess(model, response);
                         ctx.id = ctx.model.id;
-                        _this.savingSuccess(response);
+                        
                         if (ctx.redirectAfterPost != "") {
                             // If redirect after creation
                             var TargetUrl = ctx.redirectAfterPost.replace('@id', ctx.id);
@@ -203,10 +203,9 @@
                 // UAfter update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
-                        _this.savingSuccess(response);
+                        _this.savingSuccess(model, response);
                         console.log(model);
                         console.log(response);
-                        ctx.saveSuccess(model, response);
                         if (ctx.reloadAfterSave) {
                             ctx.reloadingAfterSave();
                         }
@@ -250,12 +249,7 @@
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
         },
-        savingSuccess: function (response) {
-
-        },
-        savingError: function (response) {
-
-        },
+        
         afterSavingModel: function () {
             // To be extended called after model.save()
         },
@@ -263,10 +257,10 @@
             // to be extended called after render, before the show function
         },
 
-        saveSuccess: function (model, response) {
+        savingSuccess: function (model, response) {
             // To be extended, called after save on model if success
         },
-        saveError: function (data, response) {
+        savingError: function (response) {
             // To be extended, called after save on model if error
         },
     });
