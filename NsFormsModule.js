@@ -3,8 +3,8 @@
   'underscore',
   'backbone',
   'marionette',
-  'backbone-forms',
-  'requirejs-text!./Templates/NsFormsModule.html', 
+  'backbone_forms',
+  'requirejs-text!./Templates/NsFormsModule.html',
 ], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
     return Backbone.View.extend({
         BBForm: null,
@@ -15,6 +15,7 @@
         buttonRegion: null,
         formRegion: null,
         id: null,
+        reloadAfterSave: true,
         template: tpl,
         regions: {
             nsFormButtonRegion: '#NsFormButton'
@@ -26,6 +27,7 @@
             this.name = options.name;
             this.buttonRegion = options.buttonRegion;
             this.formRegion = options.formRegion;
+            if (options.reloadAfterSave != null) { this.reloadAfterSave = options.reloadAfterSave };
             // The template need formname as vrairable, to make it work if several NSForms in the same page
             // With adding formname, there will be no name conflit on Button class
             var variables = { formname: this.name };
@@ -118,9 +120,9 @@
             this.buttonRegion.forEach(function (entry) {
                 $('#' + entry).html(ctx.template);
             });
-            
 
-            
+
+
             this.displaybuttons();
         },
 
@@ -136,7 +138,7 @@
                 $('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
                 console.log($('#' + this.formRegion));
                 $('#' + this.formRegion).find('input:enabled:first').focus()
-                
+
             }
             else {
                 $('.NsFormModuleCancel' + ctx.name).attr('style', 'display:none');
@@ -168,9 +170,9 @@
 
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
-                        ctx.saveSuccess(model, response);
+                        ctx.savingSuccess(model, response);
                         ctx.id = ctx.model.id;
-                        _this.savingSuccess(response);
+                        
                         if (ctx.redirectAfterPost != "") {
                             // If redirect after creation
                             var TargetUrl = ctx.redirectAfterPost.replace('@id', ctx.id);
@@ -186,14 +188,12 @@
                         }
                         else {
                             // If no redirect after creation
-                            ctx.displayMode = 'display';
-                            // reaload created record from AJAX Call
-                            ctx.initModel();
-                            ctx.showForm();
-                            ctx.displaybuttons();
+                            if (ctx.reloadAfterSave) {
+                                ctx.reloadAfterSave();
+                            }
                         }
                     },
-                    error: function(response){
+                    error: function (response) {
                         _this.savingError(response);
                     }
 
@@ -203,17 +203,14 @@
                 // UAfter update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
-                        _this.savingSuccess(response);
+                        _this.savingSuccess(model, response);
                         console.log(model);
                         console.log(response);
-                        ctx.saveSuccess(model, response);
-                        ctx.displayMode = 'display';
-                        // reaload updated record from AJAX Call
-                        ctx.initModel();
-                        ctx.showForm();
-                        ctx.displaybuttons();
+                        if (ctx.reloadAfterSave) {
+                            ctx.reloadingAfterSave();
+                        }
                     },
-                    error: function(response){
+                    error: function (response) {
                         _this.savingError(response);
                     }
                 });
@@ -226,7 +223,7 @@
             this.initModel();
             this.displaybuttons();
 
-            
+
 
         },
         butClickCancel: function (e) {
@@ -242,15 +239,17 @@
             $(formContent).find('textarea').val('');
             $(formContent).find('input[type="checkbox"]').attr('checked', false);
         },
+        reloadingAfterSave: function () {
+            this.displayMode = 'display';
+            // reaload created record from AJAX Call
+            this.initModel();
+            this.showForm();
+            this.displaybuttons();
+        },
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
         },
-        savingSuccess: function (response) {
-            
-        },
-        savingError: function (response) {
-
-        },
+        
         afterSavingModel: function () {
             // To be extended called after model.save()
         },
@@ -258,10 +257,10 @@
             // to be extended called after render, before the show function
         },
 
-        saveSuccess: function (model, response) {
+        savingSuccess: function (model, response) {
             // To be extended, called after save on model if success
         },
-        saveError: function (data, response) {
+        savingError: function (response) {
             // To be extended, called after save on model if error
         },
     });
