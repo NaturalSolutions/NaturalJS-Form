@@ -106,7 +106,7 @@
                     ctx.showForm();
                 },
                 error: function (data) {
-                    //alert('error Getting Fields for Form ' + this.name + ' on type ' + this.objecttype);
+                    ctx.gettingError(data);
                 }
             });
         },
@@ -189,7 +189,7 @@
                         else {
                             // If no redirect after creation
                             if (ctx.reloadAfterSave) {
-                                ctx.reloadAfterSave();
+                                ctx.reloadingAfterSave();
                             }
                         }
                     },
@@ -227,6 +227,7 @@
 
         },
         butClickCancel: function (e) {
+            console.log(this);
             e.preventDefault();
             this.displayMode = 'display';
             this.initModel();
@@ -263,6 +264,13 @@
         savingError: function (response) {
             // To be extended, called after save on model if error
         },
+
+        gettingError: function (response) {
+            // To be extended, called when initializing model failed
+
+        },
+
+        
     });
 
 });
