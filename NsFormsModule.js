@@ -154,7 +154,10 @@
             $('.NsFormModuleCancel' + ctx.name).click($.proxy(ctx.butClickCancel, ctx));
         },
         butClickSave: function (e) {
-            this.BBForm.commit();
+            console.log('************************save');
+            var validation = this.BBForm.commit();
+            //console.log('**************************************Validation****************', validation);
+            if (validation != null) return;
 
             if (this.model.attributes["id"] == 0) {
                 // To force post when model.save()
