@@ -20,14 +20,17 @@
 
         // Next for Node.js or CommonJS. jQuery may not be needed as a module.
     } else if (typeof exports !== 'undefined') {
+		console.log('common JS');
         var $ = require('jquery');
         var _ = require('underscore');
         var Backbone = require('backbone');
-        var Marionette = require('marionette');
+		Backbone.$ = $;
+        var Marionette = require('backbone.marionette');
         var BackboneForm = require('backbone-forms');
         var tpl = require('./Templates/NsFormsModule.html');
-        factory(root, exports, $, _, Backbone, Marionette, BackboneForm, tpl);
-
+        
+		module.exports = factory(root, exports, $, _, Backbone, Marionette, BackboneForm, tpl);
+		//return Retour ;
         // Finally, as a browser global.
     } else {
         //TODO
