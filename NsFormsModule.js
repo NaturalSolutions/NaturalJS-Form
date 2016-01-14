@@ -13,7 +13,7 @@
       ], function ( $, _, Backbone, Marionette, BackboneForm, exports) {
           // Export global even in AMD case in case this script is loaded with
           // others that may still expect a global Backbone.
-          var Retour = factory(root, exports, $, _, Backbone, Marionette, BackboneForm, tpl);
+          var Retour = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
           console.log(Retour) ;
           return Retour;
       });
