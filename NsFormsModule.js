@@ -9,8 +9,8 @@
       'underscore',
       'backbone',
       'marionette',
-      'backbone_forms',
-      'requirejs-text!./Templates/NsFormsModule.html'], function ( $, _, Backbone, Marionette, BackboneForm, tpl, exports) {
+      'backbone_forms'
+      ], function ( $, _, Backbone, Marionette, BackboneForm, exports) {
           // Export global even in AMD case in case this script is loaded with
           // others that may still expect a global Backbone.
           var Retour = factory(root, exports, $, _, Backbone, Marionette, BackboneForm, tpl);
@@ -27,9 +27,11 @@
 		Backbone.$ = $;
         var Marionette = require('backbone.marionette');
         var BackboneForm = require('backbone-forms');
-        var tpl = require('./Templates/NsFormsModule.html');
+        /*var brfs = require('brfs')
+        var tpl = brfs('./Templates/NsFormsModule.html');*/
+       
         
-		module.exports = factory(root, exports, $, _, Backbone, Marionette, BackboneForm, tpl);
+		module.exports = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
 		//return Retour ;
         // Finally, as a browser global.
     } else {
@@ -37,8 +39,21 @@
         //root.Backbone = factory(root, {}, root._, (root.jQuery || root.Zepto || root.ender || root.$));
     }
 
-}(this, function (root, NsForm,$, _, Backbone, Marionette, BackboneForm, tpl) {
-
+}(this, function (root, NsForm,$, _, Backbone, Marionette, BackboneForm) {
+ var tpl = '<div id="NsFormButton">' 
+     +'<button class="NsFormModuleCancel<%=formname%>">'
+     + 'Cancel '
+    +'</button>'
+    +'<button class="NsFormModuleSave<%=formname%>">'
+        +'Save' 
+    +'</button>'
+        +'<button class="NsFormModuleEdit<%=formname%>">'
+        +'Edit'
+    +'</button>'
+        +'<button class="NsFormModuleClear<%=formname%>">'
+        +'Clear' 
+    +'</button>'
++'</div>' ;
 
     NsForm =  Backbone.View.extend({
         BBForm: null,
@@ -56,6 +71,7 @@
 
 
         extendsBBForm: function () {
+            //if ()
             Backbone.Form.validators.errMessages.required = '';
             Backbone.Form.Editor.prototype.initialize = function (options) {
                 var options = options || {};
@@ -107,6 +123,7 @@
             var variables = { formname: this.name };
             if (options.template) {
                 // if a specific template is given, we use it
+                //if ()
                 this.template = _.template($(options.template).html(), variables);
             }
             else {
