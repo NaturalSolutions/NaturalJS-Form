@@ -26,7 +26,8 @@
         var Backbone = require('backbone');
 		Backbone.$ = $;
         var Marionette = require('backbone.marionette');
-        var BackboneForm = require('backbone-forms');
+        require('backbone-forms');
+        var BackboneForm=  Backbone.Form ;
         /*var brfs = require('brfs')
         var tpl = brfs('./Templates/NsFormsModule.html');*/
        
@@ -113,9 +114,11 @@
 
         initialize: function (options) {
             this.extendsBBForm();
+            this.schema = options.schema ;
+            this.fieldsets = options.fieldsets ;
             this.modelurl = options.modelurl;
             this.name = options.name;
-            this.buttonRegion = options.buttonRegion;
+            this.buttonRegion = options.buttonRegion  || [];
             this.formRegion = options.formRegion;
             if (options.reloadAfterSave != null) { this.reloadAfterSave = options.reloadAfterSave };
             // The template need formname as vrairable, to make it work if several NSForms in the same page
@@ -124,7 +127,13 @@
             if (options.template) {
                 // if a specific template is given, we use it
                 //if ()
-                this.template = _.template($(options.template).html(), variables);
+                
+                if (typeof (options.template) === 'string') {
+                    this.template = _.template($(options.template).html(), variables);
+                }
+                else {
+                }
+            
             }
             else {
                 // else use default template
@@ -177,10 +186,34 @@
         },
 
         initModel: function () {
+            var _this = this ;
+            if (!this.modelurl){return ;}
+            if (this.schema) {
+                var Model = Backbone.Model.extend(
+                    {
+                        urlRoot:this.modelurl,
+                        schema:this.schema
+                        }
+                    );
+                this.model = new Model({id:this.id}) ;
+                
+                this.model.fetch({success:function() {
+                     _this.BeforeCreateForm();
+                    _this.BBForm = new BackboneForm({ model: _this.model, data: _this.model.data, fieldsets: _this.model.fieldsets, schema: _this.model.schema });
+                    _this.showForm();
+                    }
+                }) ;
+            }
+            else {
+                this.initModelServeur() ;
+            }
 
+        },
+        initModelServeur:function() {
             if (!this.model) {
                 this.model = new Backbone.Model();
             }
+            
             if (this.model.attributes.id) {
                 id = this.model.attributes.id;
             } else {
@@ -197,7 +230,14 @@
                 data: { FormName: this.name, ObjectType: this.objectType, DisplayMode: this.displayMode },
                 dataType: 'json',
                 success: function (resp) {
-                    _this.model.schema = resp.schema;
+
+                    if (!_this.schema) {
+                        _this.model.schema = resp.schema;
+                    }
+                    else {
+                        _this.model.schema = _this.schema ;
+                    }
+                    
                     _this.model.attributes = resp.data;
                     if (resp.fieldsets) {
                         // if fieldset present in response, we get it
@@ -214,6 +254,7 @@
                 }
             });
         },
+
         BeforeCreateForm: function () {
         },
         showForm: function () {
