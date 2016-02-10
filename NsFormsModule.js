@@ -1,31 +1,124 @@
-﻿define([
-  'jquery',
-  'underscore',
-  'backbone',
-  'marionette',
-  'backbone_forms',
-  'requirejs-text!./Templates/NsFormsModule.html',
-], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
-    return Backbone.View.extend({
+﻿
+
+(function (root, factory) {
+
+    // Set up Backbone appropriately for the environment. Start with AMD.
+    if (typeof define === 'function' && define.amd) {
+        console.log('amd');
+        define(['jquery',
+      'underscore',
+      'backbone',
+      'marionette',
+      'backbone_forms'
+      ], function ( $, _, Backbone, Marionette, BackboneForm, exports) {
+          // Export global even in AMD case in case this script is loaded with
+          // others that may still expect a global Backbone.
+          var Retour = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
+          console.log(Retour) ;
+          return Retour;
+      });
+
+        // Next for Node.js or CommonJS. jQuery may not be needed as a module.
+    } else if (typeof exports !== 'undefined') {
+		console.log('common JS');
+        var $ = require('jquery');
+        var _ = require('underscore');
+        var Backbone = require('backbone');
+		Backbone.$ = $;
+        var Marionette = require('backbone.marionette');
+        require('backbone-forms');
+        var BackboneForm=  Backbone.Form ;
+        /*var brfs = require('brfs')
+        var tpl = brfs('./Templates/NsFormsModule.html');*/
+       
+        
+		module.exports = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
+		//return Retour ;
+        // Finally, as a browser global.
+    } else {
+        //TODO
+        //root.Backbone = factory(root, {}, root._, (root.jQuery || root.Zepto || root.ender || root.$));
+    }
+
+}(this, function (root, NsForm,$, _, Backbone, Marionette, BackboneForm) {
+ var tpl = '<div id="NsFormButton">' 
+     +'<button class="NsFormModuleCancel<%=formname%>">'
+     + 'Cancel '
+    +'</button>'
+    +'<button class="NsFormModuleSave<%=formname%>">'
+        +'Save' 
+    +'</button>'
+        +'<button class="NsFormModuleEdit<%=formname%>">'
+        +'Edit'
+    +'</button>'
+        +'<button class="NsFormModuleClear<%=formname%>">'
+        +'Clear' 
+    +'</button>'
++'</div>' ;
+
+    NsForm =  Backbone.View.extend({
         BBForm: null,
         modelurl: null,
         Name: null,
-        objecttype: null,
+        objectType: null,
         displayMode: null,
         buttonRegion: null,
         formRegion: null,
         id: null,
         reloadAfterSave: true,
         template: tpl,
-        regions: {
-            nsFormButtonRegion: '#NsFormButton'
-        },
+
         redirectAfterPost: "",
 
+
+        extendsBBForm: function () {
+            //if ()
+            Backbone.Form.validators.errMessages.required = '';
+            Backbone.Form.Editor.prototype.initialize = function (options) {
+                var options = options || {};
+
+                //Set initial value
+                if (options.model) {
+                    if (!options.key) throw new Error("Missing option: 'key'");
+
+                    this.model = options.model;
+
+                    this.value = this.model.get(options.key);
+                }
+                else if (options.value !== undefined) {
+                    this.value = options.value;
+                }
+
+                if (this.value === undefined) this.value = this.defaultValue;
+
+                //Store important data
+                _.extend(this, _.pick(options, 'key', 'form'));
+
+                var schema = this.schema = options.schema || {};
+
+                this.validators = options.validators || schema.validators;
+
+                //Main attributes
+                this.$el.attr('id', this.id);
+                this.$el.attr('name', this.getName());
+                if (schema.editorClass) this.$el.addClass(schema.editorClass);
+                if (schema.editorAttrs) this.$el.attr(schema.editorAttrs);
+
+                if (options.schema.validators && options.schema.validators[0] == "required") {
+
+                    this.$el.addClass('required');
+                }
+
+            };
+        },
+
         initialize: function (options) {
+            this.extendsBBForm();
+            this.schema = options.schema ;
+            this.fieldsets = options.fieldsets ;
             this.modelurl = options.modelurl;
             this.name = options.name;
-            this.buttonRegion = options.buttonRegion;
+            this.buttonRegion = options.buttonRegion  || [];
             this.formRegion = options.formRegion;
             if (options.reloadAfterSave != null) { this.reloadAfterSave = options.reloadAfterSave };
             // The template need formname as vrairable, to make it work if several NSForms in the same page
@@ -33,15 +126,22 @@
             var variables = { formname: this.name };
             if (options.template) {
                 // if a specific template is given, we use it
-                this.template = _.template($(options.template).html(), variables);
+                //if ()
+                
+                if (typeof (options.template) === 'string') {
+                    this.template = _.template($(options.template).html(), variables);
+                }
+                else {
+                }
+            
             }
             else {
-                // else use defualt template
+                // else use default template
                 this.template = _.template($(tpl).html(), variables);
             }
 
 
-            if (options.id) {
+            if (options.id && !isNaN(options.id)) {
                 this.id = options.id;
             }
             else {
@@ -53,18 +153,24 @@
             else {
                 this.displayMode = 'edit';
             }
+
             if (options.objecttype) {
-                this.objecttype = options.objecttype;
+                this.objectType = options.objecttype;
             }
             else {
-                this.objecttype = null;
+                this.objectType = null;
             }
-            this.objecttype = options.objecttype;
-            this.displaybuttons();
+            //this.objectType = options.objecttype;
+            //this.displaybuttons();
             if (options.model) {
                 // If a model is given, no ajax call to initialize the form
                 this.model = options.model;
-                this.BBForm = new BackboneForm(this.model);
+                this.BBForm = new BackboneForm({
+                    model: this.model,
+                    data: this.model.data,
+                    fieldsets: this.model.fieldsets,
+                    schema: this.model.schema
+                });
                 this.showForm();
             }
             else {
@@ -80,52 +186,98 @@
         },
 
         initModel: function () {
-            //initialize model from AJAX call
-            this.model = new Backbone.Model();
-            //console.log(this.model);
+            var _this = this ;
+            if (!this.modelurl){return ;}
+            if (this.schema) {
+                var Model = Backbone.Model.extend(
+                    {
+                        urlRoot:this.modelurl,
+                        schema:this.schema
+                        }
+                    );
+                this.model = new Model({id:this.id}) ;
+                
+                this.model.fetch({success:function() {
+                     _this.BeforeCreateForm();
+                    _this.BBForm = new BackboneForm({ model: _this.model, data: _this.model.data, fieldsets: _this.model.fieldsets, schema: _this.model.schema });
+                    _this.showForm();
+                    }
+                }) ;
+            }
+            else {
+                this.initModelServeur() ;
+            }
+
+        },
+        initModelServeur:function() {
+            if (!this.model) {
+                this.model = new Backbone.Model();
+            }
+            
+            if (this.model.attributes.id) {
+                id = this.model.attributes.id;
+            } else {
+                id = this.id;
+            }
             var url = this.modelurl
-            var ctx = this;
+            var _this = this;
             url += this.id;
 
             $.ajax({
                 url: url,
                 context: this,
                 type: 'GET',
-                data: { FormName: this.name, ObjectType: this.objecttype, DisplayMode: this.displayMode },
+                data: { FormName: this.name, ObjectType: this.objectType, DisplayMode: this.displayMode },
                 dataType: 'json',
                 success: function (resp) {
-                    ctx.model.schema = resp.schema;
-                    ctx.model.attributes = resp.data;
+
+                    if (!_this.schema) {
+                        _this.model.schema = resp.schema;
+                    }
+                    else {
+                        _this.model.schema = _this.schema ;
+                    }
+                    
+                    _this.model.attributes = resp.data;
                     if (resp.fieldsets) {
                         // if fieldset present in response, we get it
-                        ctx.model.fieldsets = resp.fieldsets;
+                        _this.model.fieldsets = resp.fieldsets;
                     }
+                    _this.BeforeCreateForm();
                     // give the url to model to manage save
-                    ctx.model.urlRoot = this.modelurl;
-                    ctx.BBForm = new BackboneForm({ model: ctx.model, data: ctx.model.data, fieldsets: ctx.model.fieldsets, schema: ctx.model.schema });
-                    ctx.showForm();
+                    _this.model.urlRoot = this.modelurl;
+                    _this.BBForm = new BackboneForm({ model: _this.model, data: _this.model.data, fieldsets: _this.model.fieldsets, schema: _this.model.schema });
+                    _this.showForm();
                 },
                 error: function (data) {
-                    //alert('error Getting Fields for Form ' + this.name + ' on type ' + this.objecttype);
+                    _this.gettingError(data);
                 }
             });
         },
+
+        BeforeCreateForm: function () {
+        },
         showForm: function () {
+            var _this = this;
             this.BBForm.render();
+            this.render();
+
             // Call extendable function before the show call
             this.BeforeShow();
-            var ctx = this;
+            var _this = this;
             $('#' + this.formRegion).html(this.BBForm.el);
 
             this.buttonRegion.forEach(function (entry) {
-                $('#' + entry).html(ctx.template);
+                $('#' + entry).html(_this.template);
             });
 
 
 
             this.displaybuttons();
         },
-
+        AfterShow: function () {
+            // to be extended
+        },
 
 
         displaybuttons: function () {
@@ -152,16 +304,21 @@
             $('.NsFormModuleEdit' + ctx.name).click($.proxy(ctx.butClickEdit, ctx));
             $('.NsFormModuleClear' + ctx.name).click($.proxy(ctx.butClickClear, ctx));
             $('.NsFormModuleCancel' + ctx.name).click($.proxy(ctx.butClickCancel, ctx));
+            this.buttonDiplayed();
         },
+
         butClickSave: function (e) {
-            this.BBForm.commit();
+
+            var validation = this.BBForm.commit();
+            //console.log('**************************************Validation****************', validation);
+            if (validation != null) return;
 
             if (this.model.attributes["id"] == 0) {
                 // To force post when model.save()
                 this.model.attributes["id"] = null;
             }
 
-            var ctx = this;
+            var _this = this;
             var _this = this;
             this.onSavingModel();
             if (this.model.id == 0) {
@@ -170,12 +327,12 @@
 
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
-                        ctx.savingSuccess(model, response);
-                        ctx.id = ctx.model.id;
-                        
-                        if (ctx.redirectAfterPost != "") {
+                        _this.savingSuccess(model, response);
+                        _this.id = ctx.model.id;
+
+                        if (_this.redirectAfterPost != "") {
                             // If redirect after creation
-                            var TargetUrl = ctx.redirectAfterPost.replace('@id', ctx.id);
+                            var TargetUrl = _this.redirectAfterPost.replace('@id', ctx.id);
 
                             if (window.location.href == window.location.origin + TargetUrl) {
                                 // if same page, relaod
@@ -188,8 +345,8 @@
                         }
                         else {
                             // If no redirect after creation
-                            if (ctx.reloadAfterSave) {
-                                ctx.reloadAfterSave();
+                            if (_this.reloadAfterSave) {
+                                _this.reloadingAfterSave();
                             }
                         }
                     },
@@ -200,14 +357,12 @@
                 });
             }
             else {
-                // UAfter update of existing record
+                // After update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
                         _this.savingSuccess(model, response);
-                        console.log(model);
-                        console.log(response);
-                        if (ctx.reloadAfterSave) {
-                            ctx.reloadingAfterSave();
+                        if (_this.reloadAfterSave) {
+                            _this.reloadingAfterSave();
                         }
                     },
                     error: function (response) {
@@ -227,6 +382,7 @@
 
         },
         butClickCancel: function (e) {
+            console.log(this);
             e.preventDefault();
             this.displayMode = 'display';
             this.initModel();
@@ -249,7 +405,7 @@
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
         },
-        
+
         afterSavingModel: function () {
             // To be extended called after model.save()
         },
@@ -263,6 +419,16 @@
         savingError: function (response) {
             // To be extended, called after save on model if error
         },
-    });
 
-});
+        gettingError: function (response) {
+            // To be extended, called when initializing model failed
+
+        },
+        buttonDiplayed: function (e) {
+        }
+
+
+    });
+    return NsForm;
+
+}));
