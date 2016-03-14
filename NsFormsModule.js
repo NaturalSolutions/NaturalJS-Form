@@ -70,7 +70,6 @@
 
         redirectAfterPost: "",
 
-
         extendsBBForm: function () {
             //if ()
             Backbone.Form.validators.errMessages.required = '';
@@ -267,10 +266,19 @@
             var _this = this;
             $('#' + this.formRegion).html(this.BBForm.el);
 
+
+
             this.buttonRegion.forEach(function (entry) {
                 $('#' + entry).html(_this.template);
             });
 
+
+            $('#' + this.formRegion).find('input').on("keypress", function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                    _this.butClickSave(e);
+                }
+            });
 
 
             this.displaybuttons();
@@ -283,12 +291,17 @@
         displaybuttons: function () {
             var ctx = this;
 
+            $('.NsFormModuleCancel' + ctx.name).unbind();
+            $('.NsFormModuleSave' + ctx.name).unbind();
+            $('.NsFormModuleClear' + ctx.name).unbind();
+            $('.NsFormModuleEdit' + ctx.name).unbind();
+           
+
             if (ctx.displayMode == 'edit') {
                 $('.NsFormModuleCancel' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleSave' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleClear' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
-                console.log($('#' + this.formRegion));
                 $('#' + this.formRegion).find('input:enabled:first').focus()
 
             }
@@ -328,11 +341,11 @@
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
                         _this.savingSuccess(model, response);
-                        _this.id = ctx.model.id;
+                        _this.id = _this.model.id;
 
                         if (_this.redirectAfterPost != "") {
                             // If redirect after creation
-                            var TargetUrl = _this.redirectAfterPost.replace('@id', ctx.id);
+                            var TargetUrl = _this.redirectAfterPost.replace('@id', _this.id);
 
                             if (window.location.href == window.location.origin + TargetUrl) {
                                 // if same page, relaod
