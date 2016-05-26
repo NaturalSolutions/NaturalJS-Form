@@ -363,8 +363,8 @@
                             }
                         }
                     },
-                    error: function (response) {
-                        _this.savingError(response);
+                    error: function (model,response) {
+                        _this.savingError(model, response);
                     }
 
                 });
@@ -395,7 +395,6 @@
 
         },
         butClickCancel: function (e) {
-            console.log(this);
             e.preventDefault();
             this.displayMode = 'display';
             this.initModel();
@@ -429,7 +428,7 @@
         savingSuccess: function (model, response) {
             // To be extended, called after save on model if success
         },
-        savingError: function (response) {
+        savingError: function (model, response) {
             // To be extended, called after save on model if error
         },
 
