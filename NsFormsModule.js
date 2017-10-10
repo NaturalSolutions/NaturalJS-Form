@@ -1,12 +1,62 @@
-﻿define([
-  'jquery',
-  'underscore',
-  'backbone',
-  'marionette',
-  'backbone_forms',
-  'requirejs-text!./Templates/NsFormsModule.html',
-], function ($, _, Backbone, Marionette, BackboneForm, tpl, Swal) {
-    return Backbone.View.extend({
+﻿
+
+(function (root, factory) {
+
+    // Set up Backbone appropriately for the environment. Start with AMD.
+    if (typeof define === 'function' && define.amd) {
+        console.log('amd');
+        define(['jquery',
+      'underscore',
+      'backbone',
+      'marionette',
+      'backbone_forms'
+      ], function ( $, _, Backbone, Marionette, BackboneForm, exports) {
+          // Export global even in AMD case in case this script is loaded with
+          // others that may still expect a global Backbone.
+          var Retour = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
+          console.log(Retour) ;
+          return Retour;
+      });
+
+        // Next for Node.js or CommonJS. jQuery may not be needed as a module.
+    } else if (typeof exports !== 'undefined') {
+		console.log('common JS');
+        var $ = require('jquery');
+        var _ = require('underscore');
+        var Backbone = require('backbone');
+		Backbone.$ = $;
+        var Marionette = require('backbone.marionette');
+        require('backbone-forms');
+        var BackboneForm=  Backbone.Form ;
+        /*var brfs = require('brfs')
+        var tpl = brfs('./Templates/NsFormsModule.html');*/
+       
+        
+		module.exports = factory(root, exports, $, _, Backbone, Marionette, BackboneForm);
+		//return Retour ;
+        // Finally, as a browser global.
+    } else {
+        //TODO
+        //root.Backbone = factory(root, {}, root._, (root.jQuery || root.Zepto || root.ender || root.$));
+    }
+
+}(this, function (root, NsForm,$, _, Backbone, Marionette, BackboneForm) {
+ var tpl = '<div id="NsFormButton">' 
+     +'<button class="NsFormModuleCancel<%=formname%>">'
+     + 'Cancel '
+    +'</button>'
+    +'<button class="NsFormModuleSave<%=formname%>">'
+        +'Save' 
+    +'</button>'
+        +'<button class="NsFormModuleEdit<%=formname%>">'
+        +'Edit'
+    +'</button>'
+        +'<button class="NsFormModuleClear<%=formname%>">'
+        +'Clear' 
+    +'</button>'
++'</div>' ;
+
+    NsForm =  Backbone.View.extend({
         BBForm: null,
         modelurl: null,
         Name: null,
@@ -17,11 +67,19 @@
         id: null,
         reloadAfterSave: true,
         template: tpl,
+<<<<<<< HEAD
        
         redirectAfterPost: "",
 
 
         extendsBBForm: function () {
+=======
+
+        redirectAfterPost: "",
+
+        extendsBBForm: function () {
+            //if ()
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
             Backbone.Form.validators.errMessages.required = '';
             Backbone.Form.Editor.prototype.initialize = function (options) {
                 var options = options || {};
@@ -63,9 +121,14 @@
 
         initialize: function (options) {
             this.extendsBBForm();
+<<<<<<< HEAD
+=======
+            this.schema = options.schema ;
+            this.fieldsets = options.fieldsets ;
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
             this.modelurl = options.modelurl;
             this.name = options.name;
-            this.buttonRegion = options.buttonRegion;
+            this.buttonRegion = options.buttonRegion  || [];
             this.formRegion = options.formRegion;
             if (options.reloadAfterSave != null) { this.reloadAfterSave = options.reloadAfterSave };
             // The template need formname as vrairable, to make it work if several NSForms in the same page
@@ -73,7 +136,14 @@
             var variables = { formname: this.name };
             if (options.template) {
                 // if a specific template is given, we use it
-                this.template = _.template($(options.template).html(), variables);
+                //if ()
+                
+                if (typeof (options.template) === 'string') {
+                    this.template = _.template($(options.template).html(), variables);
+                }
+                else {
+                }
+            
             }
             else {
                 // else use default template
@@ -126,10 +196,41 @@
         },
 
         initModel: function () {
+<<<<<<< HEAD
             
             if (!this.model) {
                 this.model = new Backbone.Model();
             }
+=======
+            var _this = this ;
+            if (!this.modelurl){return ;}
+            if (this.schema) {
+                var Model = Backbone.Model.extend(
+                    {
+                        urlRoot:this.modelurl,
+                        schema:this.schema
+                        }
+                    );
+                this.model = new Model({id:this.id}) ;
+                
+                this.model.fetch({success:function() {
+                     _this.BeforeCreateForm();
+                    _this.BBForm = new BackboneForm({ model: _this.model, data: _this.model.data, fieldsets: _this.model.fieldsets, schema: _this.model.schema });
+                    _this.showForm();
+                    }
+                }) ;
+            }
+            else {
+                this.initModelServeur() ;
+            }
+
+        },
+        initModelServeur:function() {
+            if (!this.model) {
+                this.model = new Backbone.Model();
+            }
+            
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
             if (this.model.attributes.id) {
                 id = this.model.attributes.id;
             } else {
@@ -146,7 +247,18 @@
                 data: { FormName: this.name, ObjectType: this.objectType, DisplayMode: this.displayMode },
                 dataType: 'json',
                 success: function (resp) {
+<<<<<<< HEAD
                     _this.model.schema = resp.schema;
+=======
+
+                    if (!_this.schema) {
+                        _this.model.schema = resp.schema;
+                    }
+                    else {
+                        _this.model.schema = _this.schema ;
+                    }
+                    
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
                     _this.model.attributes = resp.data;
                     if (resp.fieldsets) {
                         // if fieldset present in response, we get it
@@ -163,6 +275,10 @@
                 }
             });
         },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
         BeforeCreateForm: function () {
         },
         showForm: function () {
@@ -175,15 +291,28 @@
             var _this = this;
             $('#' + this.formRegion).html(this.BBForm.el);
 
+
+
             this.buttonRegion.forEach(function (entry) {
                 $('#' + entry).html(_this.template);
             });
 
 
+            $('#' + this.formRegion).find('input').on("keypress", function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                    _this.butClickSave(e);
+                }
+            });
+
 
             this.displaybuttons();
         },
+<<<<<<< HEAD
         AfterShow :  function () {
+=======
+        AfterShow: function () {
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
             // to be extended
         },
 
@@ -191,12 +320,17 @@
         displaybuttons: function () {
             var ctx = this;
 
+            $('.NsFormModuleCancel' + ctx.name).unbind();
+            $('.NsFormModuleSave' + ctx.name).unbind();
+            $('.NsFormModuleClear' + ctx.name).unbind();
+            $('.NsFormModuleEdit' + ctx.name).unbind();
+           
+
             if (ctx.displayMode == 'edit') {
                 $('.NsFormModuleCancel' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleSave' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleClear' + ctx.name).attr('style', 'display:');
                 $('.NsFormModuleEdit' + ctx.name).attr('style', 'display:none');
-                console.log($('#' + this.formRegion));
                 $('#' + this.formRegion).find('input:enabled:first').focus()
 
             }
@@ -216,7 +350,11 @@
         },
 
         butClickSave: function (e) {
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
             var validation = this.BBForm.commit();
             //console.log('**************************************Validation****************', validation);
             if (validation != null) return;
@@ -236,11 +374,19 @@
                     success: function (model, response) {
                         // Getting ID of created record, from the model (has beeen affected during model.save in the response)
                         _this.savingSuccess(model, response);
+<<<<<<< HEAD
                         _this.id = ctx.model.id;
                         
                         if (_this.redirectAfterPost != "") {
                             // If redirect after creation
                             var TargetUrl = _this.redirectAfterPost.replace('@id', ctx.id);
+=======
+                        _this.id = _this.model.id;
+
+                        if (_this.redirectAfterPost != "") {
+                            // If redirect after creation
+                            var TargetUrl = _this.redirectAfterPost.replace('@id', _this.id);
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
 
                             if (window.location.href == window.location.origin + TargetUrl) {
                                 // if same page, relaod
@@ -258,8 +404,8 @@
                             }
                         }
                     },
-                    error: function (response) {
-                        _this.savingError(response);
+                    error: function (model,response) {
+                        _this.savingError(model, response);
                     }
 
                 });
@@ -268,10 +414,17 @@
                 // After update of existing record
                 this.model.save(null, {
                     success: function (model, response) {
+<<<<<<< HEAD
                         _this.savingSuccess(model, response);
                         if (_this.reloadAfterSave) {
                             _this.reloadingAfterSave();
                         }
+=======
+                        _this.savingSuccess(model, response);
+                        if (_this.reloadAfterSave) {
+                            _this.reloadingAfterSave();
+                        }
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
                     },
                     error: function (response) {
                         _this.savingError(response);
@@ -290,7 +443,6 @@
 
         },
         butClickCancel: function (e) {
-            console.log(this);
             e.preventDefault();
             this.displayMode = 'display';
             this.initModel();
@@ -313,7 +465,7 @@
         onSavingModel: function () {
             // To be extended, calld after commit before save on model
         },
-        
+
         afterSavingModel: function () {
             // To be extended called after model.save()
         },
@@ -324,7 +476,7 @@
         savingSuccess: function (model, response) {
             // To be extended, called after save on model if success
         },
-        savingError: function (response) {
+        savingError: function (model, response) {
             // To be extended, called after save on model if error
         },
 
@@ -334,8 +486,12 @@
         },
         buttonDiplayed: function (e) {
         }
+<<<<<<< HEAD
+=======
 
-        
+>>>>>>> 65858720e14ddf145eb1293f150cc8e0b5d8af27
+
     });
+    return NsForm;
 
-});
+}));
